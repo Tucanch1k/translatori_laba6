@@ -1,0 +1,14 @@
+# Сгенерированные файлы
+parser
+parser.tab.c
+parser.tab.h
+lex.yy.c
+parser.output
+
+# Объектные файлы
+*.o
+
+# Временные файлы
+*.tmp
+*.swp
+*~
