@@ -69,6 +69,7 @@ cmake --build build
 
 Корректное выражение:
 ./build/main examples/valid/arithmetic.mini
+
 Вывод:
 5
 14
@@ -81,9 +82,11 @@ cmake --build build
 
 Ошибка:
 ./build/main examples/invalid/unknown_symbol.mini
+
 Вывод:
 Лексическая ошибка в строке 2: недопустимый символ '&'
 
 ## Коды возврата
 - 0 - успешное выполнение
 - 1 - ошибка
+
