@@ -1,14 +1,38 @@
-# Сгенерированные файлы
-parser
+# Сгенерированные файлы Bison/Flex
 parser.tab.c
 parser.tab.h
 lex.yy.c
 parser.output
 
+# Папка сборки
+build/
+cmake-build-*/
+
+# Исполняемые файлы
+main
+parser
+*.exe
+
 # Объектные файлы
 *.o
+*.obj
 
 # Временные файлы
 *.tmp
 *.swp
 *~
+*.log
+
+# Файлы IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Файлы с результатами тестов
+test_output.txt
+*.out
+
+# OS файлы
+.DS_Store
+Thumbs.db
