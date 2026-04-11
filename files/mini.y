@@ -6,13 +6,15 @@
 
 void yyerror(const char *s);
 int yylex(void);
+int has_lex_error(void);
 
 extern FILE *yyin;
 extern int yylineno;
 
 #define YYERROR_VERBOSE 1
 
-static int has_error = 0;  /* Флаг ошибки */
+static int has_error = 0;
+static int current_has_error = 0;
 %}
 
 %union {
@@ -21,7 +23,7 @@ static int has_error = 0;  /* Флаг ошибки */
 
 %token <num> NUM
 %token PLUS MULT LPAREN RPAREN COMMA POW
-%token ERROR
+%token LEX_ERROR
 
 %type <num> expr term factor pow_func
 
@@ -34,14 +36,23 @@ input   : /* пусто */
         ;
 
 line    : expr '\n'          { 
-                              if (!has_error) {
+                              if (!current_has_error && !has_lex_error()) {
                                   printf("%d\n", $1);
                               }
+                              current_has_error = 0;
                             }
-        | '\n'               { }
+        | '\n'               { 
+                              current_has_error = 0;
+                            }
+        | LEX_ERROR '\n'     { 
+                              has_error = 1;
+                              current_has_error = 1;
+                              yyerrok;
+                            }
         | error '\n'         { 
                               has_error = 1;
-                              yyerrok; 
+                              current_has_error = 1;
+                              yyerrok;
                             }
         ;
 
@@ -67,11 +78,14 @@ pow_func: POW LPAREN expr COMMA expr RPAREN {
 
 void yyerror(const char *s) {
     has_error = 1;
-    if (strstr(s, "unexpected $end") || strstr(s, "unexpected end of file")) {
-        fprintf(stderr, "Синтаксическая ошибка в строке %d: неожиданный конец выражения\n", yylineno);
-    }
-    else {
-        fprintf(stderr, "Синтаксическая ошибка в строке %d: %s\n", yylineno, s);
+    current_has_error = 1;
+    if (!has_lex_error()) {
+        if (strstr(s, "unexpected $end") || strstr(s, "unexpected end of file")) {
+            fprintf(stderr, "Синтаксическая ошибка в строке %d: неожиданный конец выражения\n", yylineno);
+        }
+        else {
+            fprintf(stderr, "Синтаксическая ошибка в строке %d: %s\n", yylineno, s);
+        }
     }
 }
 
@@ -89,8 +103,9 @@ int main(int argc, char **argv) {
     
     yyin = input;
     has_error = 0;
+    current_has_error = 0;
     yyparse();
     fclose(input);
     
-    return has_error ? 1 : 0;
+    return (has_error || has_lex_error()) ? 1 : 0;
 }

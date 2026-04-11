@@ -7,6 +7,8 @@
 void yyerror(const char *s);
 extern int yylineno;
 extern char *yytext;
+
+static int lex_error = 0;
 %}
 
 %option noyywrap
@@ -19,6 +21,8 @@ extern char *yytext;
 "\n"                {
                         return '\n';
                     }
+
+"#".*               { /* пропустить комментарии */ }
 
 [0-9]+              {
                         yylval.num = atoi(yytext);
@@ -56,12 +60,16 @@ extern char *yytext;
 
 [a-zA-Z]+           {
                         fprintf(stderr, "Лексическая ошибка в строке %d: недопустимый идентификатор '%s'\n", yylineno, yytext);
-                        return ERROR;
+                        lex_error = 1;
                     }
 
 .                   {
                         fprintf(stderr, "Лексическая ошибка в строке %d: недопустимый символ '%s'\n", yylineno, yytext);
-                        return ERROR;
+                        lex_error = 1;
                     }
 
 %%
+
+int has_lex_error(void) {
+    return lex_error;
+}
