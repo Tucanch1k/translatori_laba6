@@ -23,7 +23,7 @@ static int current_has_error = 0;
 
 %token <num> NUM
 %token PLUS MULT LPAREN RPAREN COMMA POW
-%token LEX_ERROR
+%token ERROR
 
 %type <num> expr term factor pow_func
 
@@ -43,11 +43,6 @@ line    : expr '\n'          {
                             }
         | '\n'               { 
                               current_has_error = 0;
-                            }
-        | LEX_ERROR '\n'     { 
-                              has_error = 1;
-                              current_has_error = 1;
-                              yyerrok;
                             }
         | error '\n'         { 
                               has_error = 1;
@@ -70,7 +65,14 @@ factor  : NUM                { $$ = $1; }
         ;
 
 pow_func: POW LPAREN expr COMMA expr RPAREN {
-            $$ = (int)pow($3, $5);
+            if ($3 == 0 && $5 < 0) {
+                fprintf(stderr, "Семантическая ошибка в строке %d: возведение 0 в отрицательную степень (деление на ноль)\n", yylineno);
+                has_error = 1;
+                current_has_error = 1;
+                $$ = 0;
+            } else {
+                $$ = (int)pow($3, $5);
+            }
         }
         ;
 
@@ -81,10 +83,10 @@ void yyerror(const char *s) {
     current_has_error = 1;
     if (!has_lex_error()) {
         if (strstr(s, "unexpected $end") || strstr(s, "unexpected end of file")) {
-            fprintf(stderr, "Синтаксическая ошибка в строке %d: неожиданный конец выражения\n", yylineno);
+            fprintf(stderr, "Синтаксическая ошибка в строке %d: неожиданный конец выражения\n", yylineno - 1);
         }
         else {
-            fprintf(stderr, "Синтаксическая ошибка в строке %d: %s\n", yylineno, s);
+            fprintf(stderr, "Синтаксическая ошибка в строке %d: %s\n", yylineno - 1, s);
         }
     }
 }
